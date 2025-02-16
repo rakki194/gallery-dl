@@ -158,9 +158,14 @@ class PathFormat():
             return open(self.temppath, mode)
 
     def exists(self):
-        """Return True if the file exists on disk"""
-        if self.extension and os.path.exists(self.realpath):
-            return self.check_file()
+        """Return True if the file exists on disk or if a .jxl file with the same base filename exists."""
+        if self.extension:
+            if os.path.exists(self.realpath):
+                return self.check_file()
+            base, _ = os.path.splitext(self.realpath)
+            jxl_path = base + ".jxl"
+            if os.path.exists(jxl_path):
+                return True
         return False
 
     @staticmethod
