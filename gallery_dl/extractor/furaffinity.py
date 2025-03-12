@@ -23,6 +23,7 @@ class FuraffinityExtractor(Extractor):
     cookies_domain = ".furaffinity.net"
     cookies_names = ("a", "b")
     root = "https://www.furaffinity.net"
+    request_interval = 1.0
     _warning = True
 
     def __init__(self, match):
@@ -97,7 +98,8 @@ class FuraffinityExtractor(Extractor):
             data["tags"] = text.split_html(extr(
                 'class="tags-row">', '</section>'))
             data["title"] = text.unescape(extr("<h2><p>", "</p></h2>"))
-            data["artist"] = extr("<strong>", "<")
+            data["artist_url"] = extr('title="', '"').strip()
+            data["artist"] = extr(">", "<")
             data["_description"] = extr(
                 'class="submission-description user-submitted-links">',
                 '                                    </div>')
@@ -120,6 +122,7 @@ class FuraffinityExtractor(Extractor):
         else:
             # old site layout
             data["title"] = text.unescape(extr("<h2>", "</h2>"))
+            data["artist_url"] = extr('title="', '"').strip()
             data["artist"] = extr(">", "<")
             data["fa_category"] = extr("<b>Category:</b>", "<").strip()
             data["theme"] = extr("<b>Theme:</b>", "<").strip()
@@ -138,7 +141,6 @@ class FuraffinityExtractor(Extractor):
                 'style="padding:8px">', '                               </td>')
             data["folders"] = ()  # folders not present in old layout
 
-        data["artist_url"] = data["artist"].replace("_", "").lower()
         data["user"] = self.user or data["artist_url"]
         data["date"] = text.parse_timestamp(data["filename"].partition(".")[0])
         data["description"] = self._process_description(data["_description"])
