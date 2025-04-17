@@ -66,8 +66,7 @@ class SankakuExtractor(BooruExtractor):
     def _prepare(self, post):
         post["created_at"] = post["created_at"]["s"]
         post["date"] = text.parse_timestamp(post["created_at"])
-        post["tags"] = [tag["name"].lower().replace(" ", "_")
-                        for tag in post["tags"] if tag["name"]]
+        post["tags"] = post.pop("tag_names", ())
         post["tag_string"] = " ".join(post["tags"])
         post["_http_validate"] = self._check_expired
 
@@ -210,8 +209,28 @@ class SankakuAPI():
         return self._call("/posts/{}/notes".format(post_id), params)
 
     def tags(self, post_id):
-        params = {"lang": "en"}
-        return self._call("/posts/{}/tags".format(post_id), params)["data"]
+        endpoint = "/posts/{}/tags".format(post_id)
+        params = {
+            "lang" : "en",
+            "page" : 1,
+            "limit": 100,
+        }
+
+        tags = None
+        while True:
+            data = self._call(endpoint, params)
+
+            tags_new = data["data"]
+            if not tags_new:
+                return tags or []
+            elif tags is None:
+                tags = tags_new
+            else:
+                tags.extend(tags_new)
+
+            if len(tags_new) < 80 or len(tags) >= data["total"]:
+                return tags
+            params["page"] += 1
 
     def pools(self, pool_id):
         params = {"lang": "en"}

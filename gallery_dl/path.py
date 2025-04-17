@@ -274,7 +274,7 @@ class PathFormat():
         try:
             for fmt in self.directory_formatters:
                 segment = fmt(kwdict).strip()
-                if strip and segment != "..":
+                if strip and segment not in {".", ".."}:
                     # remove trailing dots and spaces (#647)
                     segment = segment.rstrip(strip)
                 if segment:
