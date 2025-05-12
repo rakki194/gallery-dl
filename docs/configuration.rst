@@ -661,7 +661,7 @@ extractor.*.user-agent
 Type
     ``string``
 Default
-    * ``"gallery-dl/VERSION"``: ``[Danbooru]``, ``mangadex``
+    * ``"gallery-dl/VERSION"``: ``[Danbooru]``, ``mangadex``, ``weasyl``
     * ``"gallery-dl/VERSION (by mikf)"``: ``[E621]``
     * ``"Patreon/72.2.28 (Android; Android 14; Scale/2.10)"``: ``patreon``
     * ``"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/LATEST.0.0.0 Safari/537.36"``: ``instagram``
@@ -1843,10 +1843,10 @@ Type
 Default
     ``false``
 Example
-    * ``"generation"``
-    * ``["generation"]``
+    * ``"generation,version"``
+    * ``["generation", "version"]``
 Description
-    Extract additional ``generation`` metadata.
+    Extract additional ``generation`` and ``version`` metadata.
 
     Note: This requires 1 additional HTTP request per image or video.
 
@@ -1860,7 +1860,7 @@ Type
 Default
     ``true``
 Description
-    Download images rated NSFW.
+    Download NSFW-rated images.
 
     * For ``"api": "rest"``, this can be one of
       ``"None"``, ``"Soft"``, ``"Mature"``, ``"X"``
@@ -1869,8 +1869,8 @@ Description
     * For ``"api": "trpc"``, this can be an ``integer``
       whose bits select the returned mature content flags.
 
-      For example, ``12`` (``4|8``)  would return only
-      ``Mature`` and ``X`` rated images,
+      For example, ``28`` (``4|8|16``)  would return only
+      ``R``, ``X``, and ``XXX`` rated images,
       while ``3`` (``1|2``) would return only
       ``None`` and ``Soft`` rated images,
 
@@ -1893,6 +1893,26 @@ Description
 
     Note: Set this option to an arbitrary letter, e.g., ``"w"``,
     to download images in JPEG format at their original resolution.
+
+
+extractor.civitai.quality-videos
+--------------------------------
+Type
+    * ``string``
+    * ``list`` of ``strings``
+Default
+    ``"quality=100"``
+Example
+    * ``"+transcode=true,quality=100"``
+    * ``["+", "transcode=true", "quality=100"]``
+Description
+    A (comma-separated) list of video quality options
+    to pass with every video URL.
+
+    Known available options include ``original``, ``quality``, ``transcode``
+
+    Use ``+`` as first character to `add` the given options to the
+    `quality <extractor.civitai.quality_>`__ ones.
 
 
 extractor.cyberdrop.domain
@@ -3107,12 +3127,39 @@ Description
     Extract a user's announcements as ``announcements`` metadata.
 
 
+extractor.kemonoparty.endpoint
+------------------------------
+Type
+    ``string``
+Default
+    ``"posts"``
+Description
+    API endpoint to use for retrieving creator posts.
+
+    ``"legacy"``
+        | Use the results from
+          `/v1/{service}/user/{creator_id}/posts-legacy <https://kemono.su/documentation/api#operations-default-get_v1__service__user__creator_id__posts_legacy>`__
+        | Provides less metadata, but is more reliable at returning all posts.
+        | Supports filtering results by ``tag`` query parameter.
+    ``"legacy+"``
+        | Use the results from
+          `/v1/{service}/user/{creator_id}/posts-legacy <https://kemono.su/documentation/api#operations-default-get_v1__service__user__creator_id__posts_legacy>`__
+          to retrieve post IDs
+        | and one request to
+          `/v1/{service}/user/{creator_id}/post/{post_id} <https://kemono.su/documentation/api#operations-Posts-get_v1__service__user__creator_id__post__post_id_>`__
+          to get a full set of metadata for each.
+    ``"posts"``
+        | Use the results from
+          `/v1/{service}/user/{creator_id} <https://kemono.su/documentation/api#operations-Posts-get_v1__service__user__creator_id_>`__
+        | Provides more metadata, but might not return a creator's first/last posts.
+
+
 extractor.kemonoparty.favorites
 -------------------------------
 Type
     ``string``
 Default
-    ``artist``
+    ``"artist"``
 Description
     Determines the type of favorites to be downloaded.
 
@@ -3435,6 +3482,16 @@ Description
     Extract extended ``pool`` metadata.
 
     Note: Not supported by all ``moebooru`` instances.
+
+
+extractor.naver.videos
+----------------------
+Type
+    ``bool``
+Default
+    ``true``
+Description
+    Download videos.
 
 
 extractor.newgrounds.flash
@@ -6430,6 +6487,19 @@ Description
     Only compare file sizes. Do not read and compare their content.
 
 
+directory.event
+---------------
+Type
+    * ``string``
+    * ``list`` of ``strings``
+Default
+    ``"prepare"``
+Description
+    The event(s) for which directory_ format strings are (re)evaluated.
+
+    See `metadata.event`_ for a list of available events.
+
+
 exec.archive
 ------------
 Type
@@ -7728,6 +7798,8 @@ Description
     ``compare``
         | Compare versions of the same file and replace/enumerate them on mismatch
         | (requires `downloader.*.part`_ = ``true`` and `extractor.*.skip`_ = ``false``)
+    ``directory``
+        Reevaluate directory_ format strings
     ``exec``
         Execute external commands
     ``hash``
